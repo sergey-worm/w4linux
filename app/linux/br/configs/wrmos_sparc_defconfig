@@ -1,0 +1,31 @@
+# Architecture
+BR2_sparc=y
+BR2_sparc_v8=y
+
+# Toolchain
+BR2_TOOLCHAIN_EXTERNAL=y
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM=y
+# gccprefix may be like sparc-linux- or /usr/sbin/sparc-linux-
+BR2_TOOLCHAIN_EXTERNAL_CUSTOM_PREFIX="$(shell basename $$gccprefix | sed 's/.$$//')"
+BR2_TOOLCHAIN_EXTERNAL_PATH="$(shell if [ $$(dirname $$gccprefix) != '.' ]; then $$(dirname $$gccprefix)/..; fi)"
+# BR2_PACKAGE_HOST_GDB_ARCH_SUPPORTS is not set
+BR2_TOOLCHAIN_EXTERNAL_HEADERS_4_7=y
+BR2_TOOLCHAIN_EXTERNAL_GCC_6=y
+# BR2_TOOLCHAIN_EXTERNAL_HAS_THREADS_DEBUG is not set
+
+# Filesystem
+BR2_TARGET_ROOTFS_EXT2=y
+# BR2_TARGET_ROOTFS_TAR is not set
+BR2_TARGET_ROOTFS_INITRAMFS=y
+
+# Packages
+BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_4_12=y
+# BR2_PACKAGE_IFUPDOWN_SCRIPTS is not set
+BR2_PACKAGE_SL=y
+
+# Linux kernel
+BR2_LINUX_KERNEL=y
+BR2_LINUX_KERNEL_CUSTOM_VERSION=y
+BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE="4.12.1"
+BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="board/wrmos/sparc/linux-4.12.1.config"

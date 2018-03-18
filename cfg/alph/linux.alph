@@ -1,0 +1,65 @@
+# config for roottask
+# mmio devices
+DEVICES
+	#name     paddr        size        irq
+#	uart      0x80000100   0x00000100    3
+	uart      krn          krn         krn
+
+# named memory regions
+MEMORY
+	#name      sz      access  cached  contig
+
+# applications
+APPLICATIONS
+	{
+		name:         uart
+		short_name:   uart
+		file_path:    ramfs:/uart.elf
+		stack_size:   0x1000
+		aspaces_max:  1
+		threads_max:  3
+		prio_max:     120
+		fpu:          off
+		devices:      uart
+		memory:
+		args:         uart
+	}
+	{
+		name:         console
+		short_name:   cons
+		file_path:    ramfs:/console.elf
+		stack_size:   0x1000
+		aspaces_max:  1
+		threads_max:  3
+		prio_max:     110
+		fpu:          off
+		devices:
+		memory:
+		args:
+	}
+#	{
+#		name:         chello
+#		short_name:   chel
+#		file_path:    ramfs:/chello.elf
+#		stack_size:   0x1000
+#		aspaces_max:  1
+#		threads_max:  1
+#		prio_max:     101
+#		fpu:          off
+#		devices:
+#		memory:
+#		args:
+#	}
+	{
+		name:         linux
+		short_name:   lx
+		file_path:    ramfs:/linux.elf
+		stack_size:   0x1000
+		aspaces_max:  9
+		threads_max:  22
+		prio_max:     100
+		fpu:          off
+		devices:
+		memory:
+		args:
+	}

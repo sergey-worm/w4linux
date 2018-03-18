@@ -1,0 +1,54 @@
+--- a/Makefile	2017-07-12 17:55:36.000000000 +0300
++++ b/Makefile	2018-02-13 19:55:38.922409078 +0300
+@@ -349,6 +349,7 @@
+ AS		= $(CROSS_COMPILE)as
+ LD		= $(CROSS_COMPILE)ld
+ CC		= $(CROSS_COMPILE)gcc
++CXX		= $(CROSS_COMPILE)g++
+ CPP		= $(CC) -E
+ AR		= $(CROSS_COMPILE)ar
+ NM		= $(CROSS_COMPILE)nm
+@@ -415,6 +416,7 @@
+ KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
+ KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
+ 
++export CXX
+ export VERSION PATCHLEVEL SUBLEVEL KERNELRELEASE KERNELVERSION
+ export ARCH SRCARCH CONFIG_SHELL HOSTCC HOSTCFLAGS CROSS_COMPILE AS LD CC
+ export CPP AR NM STRIP OBJCOPY OBJDUMP
+--- a/scripts/Makefile.build	2017-07-12 17:55:36.000000000 +0300
++++ b/scripts/Makefile.build	2018-02-13 19:55:52.806023153 +0300
+@@ -193,6 +193,7 @@
+ 
+ ifndef CONFIG_MODVERSIONS
+ cmd_cc_o_c = $(CC) $(c_flags) -c -o $@ $<
++cmd_cc_o_cxx = $(CXX) $(shell $(SHELL) -c "echo \"$(c_flags)\" | sed 's/-std=gnu89//'") -c -o $@ $<
+ 
+ else
+ # When module versioning is enabled the following steps are executed:
+@@ -284,6 +285,14 @@
+ 	$(call echo-cmd,record_mcount) $(cmd_record_mcount)
+ endef
+ 
++define rule_cc_o_cxx
++	$(call echo-cmd,checksrc) $(cmd_checksrc)            \
++	$(call cmd_and_fixdep,cc_o_cxx)                      \
++	$(cmd_modversions_c)                                 \
++	$(call echo-cmd,objtool) $(cmd_objtool)              \
++	$(call echo-cmd,record_mcount) $(cmd_record_mcount)
++endef
++
+ define rule_as_o_S
+ 	$(call cmd_and_fixdep,as_o_S)					  \
+ 	$(cmd_modversions_S)						  \
+@@ -302,6 +311,10 @@
+ 	$(call cmd,force_checksrc)
+ 	$(call if_changed_rule,cc_o_c)
+ 
++$(obj)/%.o: $(src)/%.cxx $(recordmcount_source) $(objtool_obj) FORCE
++	$(call cmd,force_checksrc)
++	$(call if_changed_rule,cc_o_cxx)
++
+ # Single-part modules are special since we need to mark them in $(MODVERDIR)
+ 
+ $(single-used-m): $(obj)/%.o: $(src)/%.c $(recordmcount_source) $(objtool_obj) FORCE

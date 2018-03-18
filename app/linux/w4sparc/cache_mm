@@ -1,0 +1,20 @@
+include/asm/tlbflush_32.h:	/*sparc32_cachetlb_ops->tlb_all()*/
+include/asm/tlbflush_32.h:	sparc32_cachetlb_ops->tlb_all()
+include/asm/tlbflush_32.h:	/*sparc32_cachetlb_ops->tlb_mm(mm)*/
+include/asm/tlbflush_32.h:	sparc32_cachetlb_ops->tlb_mm(mm)
+include/asm/tlbflush_32.h:	/*sparc32_cachetlb_ops->cache_range(vma, start, end)*/
+include/asm/tlbflush_32.h:	sparc32_cachetlb_ops->tlb_range(vma, start, end)
+include/asm/tlbflush_32.h:	/*sparc32_cachetlb_ops->tlb_page(vma, addr)*/
+include/asm/tlbflush_32.h:	sparc32_cachetlb_ops->tlb_page(vma, addr)
+Binary file include/asm/.cacheflush_32.h.swp matches
+Binary file include/asm/.tlbflush_32.h.swp matches
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->cache_all()
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->cache_mm(mm)
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->cache_mm(mm)
+include/asm/cacheflush_32.h:	/*sparc32_cachetlb_ops->cache_range(vma, start, end)*/
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->cache_range(vma, start, end)
+include/asm/cacheflush_32.h:	/*sparc32_cachetlb_ops->cache_page(vma, addr)*/
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->cache_page(vma, addr)
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->page_to_ram(addr)
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->sig_insns(mm, insn_addr)
+include/asm/cacheflush_32.h:	sparc32_cachetlb_ops->page_for_dma(addr)
