@@ -1,11 +1,8 @@
 ####################################################################################################
 #
-#  ...
+#  Root makefile for w4linux project.
 #
 ####################################################################################################
-
-# undef MAKEFLAGS cause it contents W=<wrmdir> but linux use this wlag as warning level
-override undefine MAKEFLAGS
 
 help:
 	@echo "Use:"
@@ -16,12 +13,12 @@ help:
 
 build:
 	mkdir -p $B
-	make -C $W build P=$$(pwd)/$P B=$$(realpath $B) E=$$(pwd) V=$V
+	+make -C $W build P=$(shell pwd)/$P B=$(abspath $B) E=$(shell pwd) V=$V
 
 clean:
 	mkdir -p $B
-	make -C $W clean P=$$(pwd)/$P B=$$(realpath $B) E=$$(pwd) V=$V
+	+make -C $W clean P=$(shell pwd)/$P B=$(abspath $B) E=$(shell pwd) V=$V
 
 rebuild:
-	make clean P=$P W=$W B=$B
-	make build P=$P W=$W B=$B
+	+make clean P=$P W=$W B=$B
+	+make build P=$P W=$W B=$B

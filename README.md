@@ -4,18 +4,16 @@ Paravirtualized linux on top of WrmOS.
 
 ## Description
 
-	w4linux - paravirtualized linux on top of WrmOS (https://github.com/sergey-worm/wrmos.git).
+w4linux - paravirtualized linux on top of WrmOS (https://github.com/sergey-worm/wrmos.git).
+Paravirtualized linux is executed as wrmos application.
 
-	w4linux project run paravirtualized linux as wrmos application.
-
-	w4linux based on Buildroot project:
-
-	* it uses rootfs for sparc arch;
-	* it uses linux kernel for w4sparc arch.
+w4linux based on Buildroot project:
+* it uses rootfs for sparc arch;
+* it uses linux kernel for w4sparc arch.
 
 ## How to
 
-	Build and run:
+Build and run:
 
 	qemu-sparc-leon3:
 		make rebuild P=cfg/prj/linux-qemu-leon3.prj W=../wrmos B=../build/linux-qemu-leon3 -j V=1
@@ -32,15 +30,15 @@ Paravirtualized linux on top of WrmOS.
 
 ## Project state
 
-	Now supportes 1 archs:  SPARC (qemu and real hardware).
+Now supportes 1 archs:  SPARC (qemu and real hardware).
 
 ## Plans
 
-	1. Support ARM.
-	1. Support x86.
-	1. Support x86 64-bit.
+1. Support ARM.
+1. Support x86.
+1. Support x86_64.
 
 ## Contacts
 
-	Sergey Worm <sergey.worm@gmail.com>
+Sergey Worm <sergey.worm@gmail.com>
 

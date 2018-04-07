@@ -2,7 +2,6 @@
 # mmio devices
 DEVICES
 	#name     paddr        size        irq
-#	uart      0x80000100   0x00000100    3
 	uart      krn          krn         krn
 
 # named memory regions
