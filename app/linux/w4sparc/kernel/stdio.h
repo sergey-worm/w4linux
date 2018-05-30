@@ -1,7 +1,7 @@
 //##################################################################################################
 //
-//  fake string.h for use in wrm_cxx.cpp
+//  fake stdio.h for use in wrm_cxx.cpp
 //
 //##################################################################################################
 
-extern "C" void* memcpy(void* dst, const void* src, size_t sz);
+extern "C" int printf(const char* format, ...);

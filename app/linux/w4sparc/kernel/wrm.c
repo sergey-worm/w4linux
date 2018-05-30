@@ -8,12 +8,11 @@
 #include <../arch/w4sparc/kernel/kernel.h>
 #include <linux/kernel.h>
 #include "wrm_log.h"
+#include "wlibc_cb.h"
 #include "console.h"
 
 #include "uapi/asm/unistd.h"
 #include "asm/irqflags_32.h"
-
-struct linux_romvec wrm_romvec;
 
 // full access memory to use linux kernel as free RAM memory (guest physical address)
 asm (".section .free_mem_1,\"awx\",@nobits"); // WA:  to add @nobits
@@ -25,6 +24,7 @@ enum
 	Free_mem_sz = 16*0x100000  // normal short work
 };
 char free_memory[Free_mem_sz] __attribute__((aligned(0x1000), section(".free_mem_1"))); // here I could not add @nobits
+asm (".previous");
 
 // use memory value instead of regiser %g6
 struct thread_info* __current_thread_info_ptr;
@@ -48,9 +48,9 @@ void l4_kdb(const char* str);
 
 int cur_eframe_syscall(void);
 
-void w4sparc_local_irq_disable(void) { arch_local_irq_disable();    }
-void w4sparc_local_irq_enable(void)  { arch_local_irq_enable();     }
-int w4sparc_local_save_flags(void)   { return arch_local_save_flags(); }
+void w4sparc_local_irq_disable(void) { arch_local_irq_disable();       }
+void w4sparc_local_irq_enable(void)  { arch_local_irq_enable();        }
+int  w4sparc_local_save_flags(void)  { return arch_local_save_flags(); }
 
 // print all area_struct
 void print_vma(const struct mm_struct* mm)
@@ -307,6 +307,8 @@ void w4sparc_handle_irq(int irq)
 	handler_irq(irq, get_current_kregs());
 }
 
+static int use_console = 0;
+
 void attach_to_system_console(void)
 {
 	int rc = w4console_init();
@@ -317,6 +319,7 @@ void attach_to_system_console(void)
 	else
 		wrm_logi("App attached to system console.\n");
 	w4console_set_wlibc_cb();
+	use_console = 1;
 }
 
 extern const int wrm_timer_irq;
@@ -354,6 +357,17 @@ int main(int argc, const char* argv[])
 //--------------------------------------------------------------------------------------------------
 void l4_kdb_putsn(const char* str, size_t len);
 
+// GCC may use putchar() as builtin-printf
+int putchar(int c)
+{
+	char ch = c;
+	if (use_console)
+		w4console_write(&ch, 1); // print via wrm-console-app
+	else
+		l4_kdb_putsn(&ch, 1);    // print via kdb syscall, this case putting in klog
+	return 1;
+}
+
 // for wrm_logx() output
 int vprintf(const char* format, va_list args)
 {
@@ -361,11 +375,12 @@ int vprintf(const char* format, va_list args)
 	char str[256];
 	res = vsnprintf(str, sizeof(str), format, args);
 	if (res > 0)
-		#if 0
-		l4_kdb_putsn(str, res);    // print via kdb syscall, this case putting in klog
-		#else
-		w4console_write(str, res); // print via wrm-console-app
-		#endif
+	{
+		if (use_console)
+			w4console_write(str, res); // print via wrm-console-app
+		else
+			l4_kdb_putsn(str, res);    // print via kdb syscall, this case putting in klog
+	}
 	return res;
 }
 
@@ -390,9 +405,6 @@ int my_printf(const char* format, ...)
 	return res;
 }
 
-// FAKE
-static void* cb[4];
-void* wlibc_callbacks_get(void) { return cb; }
 //--------------------------------------------------------------------------------------------------
 //  ~ WRM ADAPTATION
 //--------------------------------------------------------------------------------------------------

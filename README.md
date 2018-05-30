@@ -16,8 +16,9 @@ w4linux based on Buildroot project:
 Build and run:
 
 	qemu-sparc-leon3:
-		make rebuild P=cfg/prj/linux-qemu-leon3.prj W=../wrmos B=../build/linux-qemu-leon3 -j V=1
-		qemu-system-sparc -M leon3_generic -display none -serial stdio -kernel ../build/linux-qemu-leon3/ldr/bootloader.elf
+		make build P=cfg/prj/linux-qemu-leon3.prj W=../wrmos B=../build/linux-qemu-leon3 -j V=1
+		qemu-system-sparc -M leon3_generic -display none -serial stdio \
+			-kernel ../build/linux-qemu-leon3/ldr/bootloader.elf
 
 	qemu-arm-vexpress-a9:
 		TODO

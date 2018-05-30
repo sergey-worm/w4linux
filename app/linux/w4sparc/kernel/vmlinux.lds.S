@@ -213,9 +213,6 @@ SECTIONS
 	.free_memory : {
 		KEEP(*(.free_mem_1))
 	}
-	.free_memory2 : {
-		KEEP(*(.free_mem_2))
-	}
 	/*~wrm*/
 
 	STABS_DEBUG

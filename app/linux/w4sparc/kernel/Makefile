@@ -24,11 +24,13 @@ endif
 RT=../../../../../../../../../../../../../../../../../../../../../../../../..
 
 # wrm
+CFLAGS_wrm.o            += -I$(WRMOS_SRC)/lib/wlibc/inc
 CFLAGS_wrm.o            += -I$(WRMOS_SRC)/lib/wrmos/inc
 CFLAGS_wrm.o            += -I$(WRMOS_SRC)/lib/l4/inc
 CFLAGS_wrm.o            += -I$(WRMOS_SRC)/lib/sys
 CFLAGS_wrm.o            += -I$(WRMOS_SRC)/lib/console
 
+CFLAGS_wrm_cpp.o        += -I$(WRMOS_SRC)/lib/wlibc/inc
 CFLAGS_wrm_cpp.o        += -I$(WRMOS_SRC)/lib/wrmos/inc
 CFLAGS_wrm_cpp.o        += -I$(WRMOS_SRC)/lib/l4/inc
 CFLAGS_wrm_cpp.o        += -I$(WRMOS_SRC)/lib/sys
@@ -47,12 +49,15 @@ obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/app_start.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/thr.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/nthr.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/mpool.o
+obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/mem.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/sem.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wrmos/src/slock.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wlibc/src/stdlib.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wlibc/src/unistd.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wlibc/src/ctype.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wlibc/src/assert.o
+obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wlibc/src/panic.o
+obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wlibc/src/wlibc_cb.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/wstdc++/stdc++.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/l4/src/api.o
 obj-y                   += $(RT)/$(WRMOS_BLD)/lib/l4/src/sparc/api.o

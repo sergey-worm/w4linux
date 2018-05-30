@@ -11,53 +11,61 @@ MEMORY
 # applications
 APPLICATIONS
 	{
-		name:         uart
-		short_name:   uart
-		file_path:    ramfs:/uart.elf
-		stack_size:   0x1000
-		aspaces_max:  1
-		threads_max:  3
-		prio_max:     120
-		fpu:          off
-		devices:      uart
+		name:             uart
+		short_name:       uart
+		file_path:        ramfs:/uart.elf
+		stack_size:       0x1000
+		heap_size:        0x4000
+		aspaces_max:      1
+		threads_max:      3
+		prio_max:         120
+		fpu:              off
+		malloc_strategy:  on_startup
+		devices:          uart
 		memory:
-		args:         uart
+		args:             uart
 	}
 	{
-		name:         console
-		short_name:   cons
-		file_path:    ramfs:/console.elf
-		stack_size:   0x1000
-		aspaces_max:  1
-		threads_max:  3
-		prio_max:     110
-		fpu:          off
+		name:             console
+		short_name:       cons
+		file_path:        ramfs:/console.elf
+		stack_size:       0x1000
+		heap_size:        0x4000
+		aspaces_max:      1
+		threads_max:      3
+		prio_max:         110
+		fpu:              off
+		malloc_strategy:  on_startup
 		devices:
 		memory:
 		args:
 	}
 #	{
-#		name:         chello
-#		short_name:   chel
-#		file_path:    ramfs:/chello.elf
-#		stack_size:   0x1000
-#		aspaces_max:  1
-#		threads_max:  1
-#		prio_max:     101
-#		fpu:          off
+#		name:             chello
+#		short_name:       chel
+#		file_path:        ramfs:/chello.elf
+#		stack_size:       0x1000
+#		heap_size:        0x0
+#		aspaces_max:      1
+#		threads_max:      1
+#		prio_max:         101
+#		fpu:              off
+#		malloc_strategy:  on_startup
 #		devices:
 #		memory:
 #		args:
 #	}
 	{
-		name:         linux
-		short_name:   lx
-		file_path:    ramfs:/linux.elf
-		stack_size:   0x1000
-		aspaces_max:  9
-		threads_max:  22
-		prio_max:     100
-		fpu:          off
+		name:             linux
+		short_name:       lx
+		file_path:        ramfs:/linux.elf
+		stack_size:       0x1000
+		heap_size:        0x40000
+		aspaces_max:      9
+		threads_max:      22
+		prio_max:         100
+		fpu:              off
+		malloc_strategy:  on_startup
 		devices:
 		memory:
 		args:

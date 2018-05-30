@@ -7,7 +7,7 @@
 ####################################################################################################
 
 # plataorm parameters
-include $(wrmdir)/cfg/plt/sparc-qemu-leon3.plt
+plt_file = $(wrmdir)/cfg/plt/sparc-qemu-leon3.plt
 
 # toolchain
 gccprefix = sparc-linux-

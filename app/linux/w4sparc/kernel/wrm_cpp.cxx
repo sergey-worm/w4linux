@@ -1177,15 +1177,8 @@ static int console_input_thread(int param)
 	return 0;
 }
 
-asm (".section .free_mem_2,\"aw\",@nobits"); // WA:  to add @nobits
-static uint8_t memory[64*Cfg_page_sz] __attribute__((aligned(64*Cfg_page_sz), section(".free_mem_2")));
-
 extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vcpu)
 {
-	// FIXME:  get app memory from Alpha
-	wrm_mpool_add(L4_fpage_t::create((addr_t)memory, sizeof(memory), Acc_rw));
-	// ~FIXME
-
 	thrid_main = l4_utcb()->global_id();
 
 	enum { Max_prio = 10 };  // TODO:  read cur prio
@@ -1212,7 +1205,7 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 			l4_kdb("failed to alloc stack and utcb for kernel-mapper thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		int rc = wrm_thread_create(utcb_fp.addr(), kernel_mapper_thread, 1/*krn*/, stack_fp.addr(),
+		int rc = wrm_thread_create(utcb_fp, kernel_mapper_thread, 1/*krn*/, stack_fp.addr(),
 		                           stack_fp.size(), Max_prio-1, name, Wrm_thr_flag_no, &vcpu->thrid_kmap);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_kmap.number());
@@ -1229,7 +1222,7 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 			l4_kdb("failed to alloc stack and utcb for kernel-exc thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		rc = wrm_thread_create(utcb_fp.addr(), kernel_thread, Exc_level_kexc, stack_fp.addr(),
+		rc = wrm_thread_create(utcb_fp, kernel_thread, Exc_level_kexc, stack_fp.addr(),
 		                       stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_kexc);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_kexc.number());
@@ -1246,7 +1239,7 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 			l4_kdb("failed to alloc stack and utcb for kernel thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		rc = wrm_thread_create(utcb_fp.addr(), kernel_thread, Exc_level_krn, stack_fp.addr(),
+		rc = wrm_thread_create(utcb_fp, kernel_thread, Exc_level_krn, stack_fp.addr(),
 		                       stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_krn);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_krn.number());
@@ -1267,7 +1260,7 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 			l4_kdb("failed to alloc stack and utcb for kernel thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		rc = wrm_thread_create(utcb_fp.addr(), upager_thread, 0, stack_fp.addr(),
+		rc = wrm_thread_create(utcb_fp, upager_thread, 0, stack_fp.addr(),
 		                       stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_upgr);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_upgr.number());
@@ -1318,7 +1311,7 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 			wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
 			L4_thrid_t space = user->thrid_usr;
-			rc = wrm_thread_create(utcb_fp.addr(), user_mapper_thread, 0/*usr*/, stack_fp.addr(),
+			rc = wrm_thread_create(utcb_fp, user_mapper_thread, 0/*usr*/, stack_fp.addr(),
 			                       stack_fp.size(), Max_prio-1, name, Wrm_thr_flag_no,
 			                       &user->thrid_umap, space);
 
@@ -1336,7 +1329,7 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 	if (stack_fp.is_nil() || utcb_fp.is_nil())
 		l4_kdb("failed to alloc stack and utcb for console input thread");
 	wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
-	int rc = wrm_thread_create(utcb_fp.addr(), console_input_thread, 0, stack_fp.addr(),
+	int rc = wrm_thread_create(utcb_fp, console_input_thread, 0, stack_fp.addr(),
 	                           stack_fp.size(), Max_prio-0, "l-in", Wrm_thr_flag_no, &thrid_cons);
 	wrm_logi("                rc=%d, id=%u.\n", rc, thrid_cons.number());
 	if (rc)
