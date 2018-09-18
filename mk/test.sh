@@ -1,7 +1,7 @@
 #!/bin/bash
 ####################################################################################################
 #
-#  Sanity check w4linux.
+#  Sanity check for w4linux.
 #
 ####################################################################################################
 
@@ -19,9 +19,14 @@ result[$w4linux_x86_exec]=-
 result[$w4linux_x86_64_build]=-
 result[$w4linux_x86_64_exec]=-
 
+res_ok='\e[1;32m+\e[0m'
+res_bad='\e[1;31m-\e[0m'
+
+errors=0
+
 function get_result
 {
-	if [ $rc == 0 ]; then echo '\e[1;32m+\e[0m'; else echo '\e[1;31m-\e[0m'; fi
+	if [ $rc == 0 ]; then echo $res_ok; else echo $res_bad; fi
 }
 
 function do_build
@@ -34,6 +39,7 @@ function do_build
 	rc=$?
 	echo "Build:  rc=$rc."
 	result[$id]=$(get_result $rc)
+	if [ ${result[$id]} != $res_ok ]; then ((errors++)); fi
 }
 
 function do_exec
@@ -75,6 +81,7 @@ function do_exec
 
 	echo -e "\nExecute:  rc=$rc."
 	result[$id]=$(get_result $rc)
+	if [ ${result[$id]} != $res_ok ]; then ((errors++)); fi
 }
 
 function do_all
@@ -105,3 +112,6 @@ echo -e "  w4linux  sparc       ${result[$w4linux_sparc_build]}        ${result[
 echo -e "  w4linux  arm         ${result[$w4linux_arm_build]}        ${result[$w4linux_arm_exec]}"
 echo -e "  w4linux  x86         ${result[$w4linux_x86_build]}        ${result[$w4linux_x86_exec]}"
 echo -e "  w4linux  x86_64      ${result[$w4linux_x86_64_build]}        ${result[$w4linux_x86_64_exec]}"
+
+echo -e "errors:  $errors"
+exit $errors

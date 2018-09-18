@@ -31,7 +31,7 @@ struct thread_info* __current_thread_info_ptr;
 struct thread_info* current_thread_info(void)   { return __current_thread_info_ptr; }
 void set_current_thread_info(struct thread_info* v) { __current_thread_info_ptr = v; }
 
-void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vcpu);
+void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vcpu, int use_console);
 
 unsigned sleep(unsigned sec);
 int usleep(unsigned usec);
@@ -315,11 +315,15 @@ void attach_to_system_console(void)
 	if (!rc)
 		rc = w4console_open();
 	if (rc)
+	{
 		wrm_logw("Failed to attach to system console, rc=%d. Use kdb output, no input.\n", rc);
+	}
 	else
+	{
 		wrm_logi("App attached to system console.\n");
-	w4console_set_wlibc_cb();
-	use_console = 1;
+		w4console_set_wlibc_cb();
+		use_console = 1;
+	}
 }
 
 extern const int wrm_timer_irq;
@@ -339,7 +343,7 @@ int main(int argc, const char* argv[])
 	attach_to_system_console();
 
 	// run native threads:  mapper, kernel, user.
-	cxx_start_native_threads(VCPUS, ASPACES_PER_VCPU);
+	cxx_start_native_threads(VCPUS, ASPACES_PER_VCPU, use_console);
 
 	// irq thread
 	while (1)

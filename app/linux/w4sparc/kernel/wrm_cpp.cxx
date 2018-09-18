@@ -845,7 +845,7 @@ extern "C" void send_irq(int irq)
 }
 
 // wait and process user pagefaults
-static int upager_thread(int unused)
+static long upager_thread(long unused)
 {
 	wrm_logi("hello:  %s.\n", __func__);
 	wrm_logi("my global_id=%u.\n", l4_utcb()->global_id().number());
@@ -983,9 +983,9 @@ static int upager_thread(int unused)
 }
 
 // wait and process user exceptions
-static int kernel_thread(int exch_level)
+static long kernel_thread(long exch_level)
 {
-	wrm_logi("hello:  %s, exch_level=%d.\n", __func__, exch_level);
+	wrm_logi("hello:  %s, exch_level=%ld.\n", __func__, exch_level);
 	wrm_logi("my global_id=%u.\n", l4_utcb()->global_id().number());
 
 	// set exception-handler if need
@@ -1002,9 +1002,9 @@ static int kernel_thread(int exch_level)
 //  - map operation (2 msg)
 //  - unmap operation
 //  - set frsexc flag
-static int mapper_thread(int is_krn_mapper)
+static long mapper_thread(long is_krn_mapper)
 {
-	wrm_logi("hello:  %s, krn=%d.\n", __func__, is_krn_mapper);
+	wrm_logi("hello:  %s, krn=%ld.\n", __func__, is_krn_mapper);
 	wrm_logi("my global_id=%u.\n", l4_utcb()->global_id().number());
 
 	Vcpu_t* vcpu = cur_vcpu();
@@ -1111,19 +1111,19 @@ static int mapper_thread(int is_krn_mapper)
 	}
 }
 
-static int kernel_mapper_thread(int param)
+static long kernel_mapper_thread(long param)
 {
 	return mapper_thread(param);
 }
 
-static int user_mapper_thread(int param)
+static long user_mapper_thread(long param)
 {
 	return mapper_thread(param);
 }
 
-static int user_thread(int param)
+static long user_thread(long param)
 {
-	wrm_logi("hello:  %s, param=0x%x.\n", __func__, param);
+	wrm_logi("hello:  %s, param=0x%lx.\n", __func__, param);
 	wrm_logi("my global_id=%u.\n", l4_utcb()->global_id().number());
 
 	Vcpu_t* vcpu = cur_vcpu();
@@ -1151,9 +1151,9 @@ extern "C" char console_get_input_char()
 	return rc==1 ? c : 0;
 }
 
-static int console_input_thread(int param)
+static long console_input_thread(long param)
 {
-	wrm_logi("hello:  %s, param=0x%x.\n", __func__, param);
+	wrm_logi("hello:  %s, param=0x%lx.\n", __func__, param);
 	wrm_logi("my global_id=%u.\n", l4_utcb()->global_id().number());
 
 	console_input_cbuf.init(console_input_buf, sizeof(console_input_buf));
@@ -1177,7 +1177,7 @@ static int console_input_thread(int param)
 	return 0;
 }
 
-extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vcpu)
+extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vcpu, int use_console)
 {
 	thrid_main = l4_utcb()->global_id();
 
@@ -1199,14 +1199,14 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 		wrm_logi("create_thread:  kernel-mapper ...\n");
 		name[2] = 'm';
-		L4_fpage_t stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-		L4_fpage_t utcb_fp = wrm_mpool_alloc(Cfg_page_sz);
+		L4_fpage_t stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+		L4_fpage_t utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
 		if (stack_fp.is_nil() || utcb_fp.is_nil())
 			l4_kdb("failed to alloc stack and utcb for kernel-mapper thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		int rc = wrm_thread_create(utcb_fp, kernel_mapper_thread, 1/*krn*/, stack_fp.addr(),
-		                           stack_fp.size(), Max_prio-1, name, Wrm_thr_flag_no, &vcpu->thrid_kmap);
+		int rc = wrm_thr_create(utcb_fp, kernel_mapper_thread, 1/*krn*/, stack_fp.addr(),
+		                        stack_fp.size(), Max_prio-1, name, Wrm_thr_flag_no, &vcpu->thrid_kmap);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_kmap.number());
 		if (rc)
@@ -1216,14 +1216,14 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 		wrm_logi("create_thread:  kernel-exc thread ...\n");
 		name[2] = 'e';
-		stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-		utcb_fp = wrm_mpool_alloc(Cfg_page_sz);
+		stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+		utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
 		if (stack_fp.is_nil() || utcb_fp.is_nil())
 			l4_kdb("failed to alloc stack and utcb for kernel-exc thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		rc = wrm_thread_create(utcb_fp, kernel_thread, Exc_level_kexc, stack_fp.addr(),
-		                       stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_kexc);
+		rc = wrm_thr_create(utcb_fp, kernel_thread, Exc_level_kexc, stack_fp.addr(),
+		                    stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_kexc);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_kexc.number());
 		if (rc)
@@ -1233,13 +1233,13 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 		wrm_logi("create_thread:  kernel thread ...\n");
 		name[2] = 'k';
-		stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-		utcb_fp = wrm_mpool_alloc(Cfg_page_sz);
+		stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+		utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
 		if (stack_fp.is_nil() || utcb_fp.is_nil())
 			l4_kdb("failed to alloc stack and utcb for kernel thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		rc = wrm_thread_create(utcb_fp, kernel_thread, Exc_level_krn, stack_fp.addr(),
+		rc = wrm_thr_create(utcb_fp, kernel_thread, Exc_level_krn, stack_fp.addr(),
 		                       stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_krn);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_krn.number());
@@ -1254,13 +1254,13 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 		wrm_logi("create_thread:  pager thread ...\n");
 		name[2] = 'p';
-		stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-		utcb_fp = wrm_mpool_alloc(Cfg_page_sz);
+		stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+		utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
 		if (stack_fp.is_nil() || utcb_fp.is_nil())
 			l4_kdb("failed to alloc stack and utcb for kernel thread");
 		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
-		rc = wrm_thread_create(utcb_fp, upager_thread, 0, stack_fp.addr(),
+		rc = wrm_thr_create(utcb_fp, upager_thread, 0, stack_fp.addr(),
 		                       stack_fp.size(), Max_prio-2, name, Wrm_thr_flag_no, &vcpu->thrid_upgr);
 
 		wrm_logi("                rc=%d, id=%u.\n", rc, vcpu->thrid_upgr.number());
@@ -1282,19 +1282,19 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 			wrm_logi("create_task:    user task ...\n");
 			name[2] = 'u';
-			unsigned threads_max = 2;  // 2 user threads 'u' and 'U'
-			stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-			L4_fpage_t utcbs_fp = wrm_mpool_alloc(threads_max * Cfg_page_sz);
-			if (stack_fp.is_nil() || utcbs_fp.is_nil())
+			stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+			L4_fpage_t utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
+			if (stack_fp.is_nil() || utcb_fp.is_nil())
 				l4_kdb("failed to alloc stack and utcb for user-task");
 			wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
-
+			unsigned threads_max = 2;  // 2 user threads 'u' and 'U'
 			L4_fpage_t kip_area = L4_fpage_t::create(0x3000, Cfg_page_sz, Acc_rx);
-			//L4_thrid_t pager = vcpu->thrid_krn; // set kernel-thread as pager
+			L4_fpage_t utcbs_area = L4_fpage_t::create(0x4000, threads_max * Cfg_page_sz, Acc_rw);
+			//L4_thrid_t pager = vcpu->thrid_krn;  // set kernel-thread as pager
 			L4_thrid_t pager = vcpu->thrid_upgr;   // set pager-thread as pager
-			rc = wrm_task_create(utcbs_fp, user_thread, 0, stack_fp.addr(), stack_fp.size(),
-			                     Max_prio-2, name, Wrm_thr_flag_fpu, pager, kip_area,
-			                     &user->thrid_usr);
+			rc = wrm_tsk_create(utcb_fp, user_thread, 0, stack_fp.addr(), stack_fp.size(),
+			                    Max_prio-2, name, Wrm_thr_flag_fpu, pager, kip_area, utcbs_area,
+			                    &user->thrid_usr);
 
 			wrm_logi("                rc=%d, id=%u.\n", rc, user->thrid_usr.number());
 			if (rc)
@@ -1304,16 +1304,16 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 			wrm_logi("create_thread:  user-mapper thread ...\n");
 			name[2] = 'U';
-			stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-			utcb_fp = wrm_mpool_alloc(Cfg_page_sz);
+			stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+			utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
 			if (stack_fp.is_nil() || utcb_fp.is_nil())
 				l4_kdb("failed to alloc stack and utcb for user-mapper");
 			wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
 
 			L4_thrid_t space = user->thrid_usr;
-			rc = wrm_thread_create(utcb_fp, user_mapper_thread, 0/*usr*/, stack_fp.addr(),
-			                       stack_fp.size(), Max_prio-1, name, Wrm_thr_flag_no,
-			                       &user->thrid_umap, space);
+			rc = wrm_thr_create(utcb_fp, user_mapper_thread, 0/*usr*/, stack_fp.addr(),
+			                    stack_fp.size(), Max_prio-1, name, Wrm_thr_flag_no,
+			                    &user->thrid_umap, space);
 
 			wrm_logi("                rc=%d, id=%u.\n", rc, user->thrid_umap.number());
 			if (rc)
@@ -1323,17 +1323,24 @@ extern "C" void cxx_start_native_threads(unsigned vcpus, unsigned aspaces_per_vc
 
 	// create console input thread
 
-	wrm_logi("create_thread:  console input thread ...\n");
-	L4_fpage_t stack_fp = wrm_mpool_alloc(Cfg_page_sz);
-	L4_fpage_t utcb_fp = wrm_mpool_alloc(Cfg_page_sz);
-	if (stack_fp.is_nil() || utcb_fp.is_nil())
-		l4_kdb("failed to alloc stack and utcb for console input thread");
-	wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
-	int rc = wrm_thread_create(utcb_fp, console_input_thread, 0, stack_fp.addr(),
-	                           stack_fp.size(), Max_prio-0, "l-in", Wrm_thr_flag_no, &thrid_cons);
-	wrm_logi("                rc=%d, id=%u.\n", rc, thrid_cons.number());
-	if (rc)
-		l4_kdb("failed to create console input thread");
+	if (use_console)
+	{
+		wrm_logi("create_thread:  console input thread ...\n");
+		L4_fpage_t stack_fp = wrm_pgpool_alloc(Cfg_page_sz);
+		L4_fpage_t utcb_fp = wrm_pgpool_alloc(Cfg_page_sz);
+		if (stack_fp.is_nil() || utcb_fp.is_nil())
+			l4_kdb("failed to alloc stack and utcb for console input thread");
+		wrm_logi("                stack_va=0x%lx, stack_sz=0x%lx.\n", stack_fp.addr(), stack_fp.size());
+		int rc = wrm_thr_create(utcb_fp, console_input_thread, 0, stack_fp.addr(),
+		                        stack_fp.size(), Max_prio-0, "l-in", Wrm_thr_flag_no, &thrid_cons);
+		wrm_logi("                rc=%d, id=%u.\n", rc, thrid_cons.number());
+		if (rc)
+			l4_kdb("failed to create console input thread");
+	}
+	else
+	{
+		wrm_logw("create_thread:  no console input thread.\n");
+	}
 }
 
 void map(int krn, unsigned long src_addr, unsigned long dst_addr, unsigned long sz, int acc)

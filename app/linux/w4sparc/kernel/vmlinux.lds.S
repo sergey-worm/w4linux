@@ -128,6 +128,24 @@ SECTIONS
 
 	. = ALIGN(PAGE_SIZE); /*wrm*/
 
+	/*wrm*/
+	.tdata :
+	{
+		_tls_start = .;
+		_tdata_start = .;
+		*(.tdata)
+		_tdata_end = .;
+	}
+
+	.tbss :
+	{
+		_tbss_start = .;
+		*(.tbss)
+		_tbss_end = .;
+		_tls_end = .;
+	}
+	/*~wrm*/
+
 	. = ALIGN(4);
 	.tsb_ldquad_phys_patch : {
 		__tsb_ldquad_phys_patch = .;
